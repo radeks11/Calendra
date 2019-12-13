@@ -7,17 +7,20 @@
     <string name="sample_item_day">20 Cze</string>
     <string name="sample_item_dayofweek">pon</string>
     <string name="sample_item_title">Tytuł</string>
-    <string name="sample_item_time">10:30 - 11:30</string>
+    <string name="sample_item_time">10:30 &#8211; 11:30</string>
     <string name="title_activity_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="activity_main2_save_description">Save</string>
     <string name="config_calendars_title">Wybierz kalendarze</string>
     <string name="config_days_title">Ilość dni</string>
     <string name="config_past_color_title">Kolor wydarzeń minionych</string>
-    <string name="OK">OK</string>
     <string name="config_active_color_title">Kolor wydarzeń aktywnych</string>
     <string name="config_default_color_title">Domyślny kolor wydarzeń</string>
     <string name="config_show_past_events_title">Pokazuj minione wydarzenia</string>
+    <string name="OK">OK</string>
+    <string name="today">dziś</string>
+    <string name="tomorrow">jutro</string>
+    <string name="noevents">Brak wydarzeń</string>
 
 
 </resources>

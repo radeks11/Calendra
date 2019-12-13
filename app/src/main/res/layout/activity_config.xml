@@ -189,5 +189,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/config_default_color_title" />
 
+    <ListView
+        android:id="@+id/test"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/config_show_past_events" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

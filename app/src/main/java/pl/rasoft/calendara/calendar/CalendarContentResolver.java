@@ -12,7 +12,6 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -126,20 +125,16 @@ public class CalendarContentResolver {
     public static ArrayList<EventInfo> getEvents(Context context) {
 
         ArrayList<EventInfo> events = new ArrayList<EventInfo>();
+        addEmptyEvents(context, events);
         if (!SETTINGS.hasCalendarPermission(context))
         {
             return events;
         }
 
-        TimeZone tz = TimeZone.getDefault();
         Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        Calendar searchFrom = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        searchFrom.set(Calendar.HOUR_OF_DAY, 0);
-        searchFrom.set(Calendar.MINUTE, 0);
-        searchFrom.set(Calendar.SECOND, 0);
-        searchFrom.set(Calendar.MILLISECOND, 0);
+        Calendar searchFrom = SETTINGS.getCalendarDateInstance();
         Calendar searchTo = (Calendar)searchFrom.clone();
-        searchTo.add(Calendar.DATE, 2);
+        searchTo.add(Calendar.DATE, SETTINGS.getWidgetDaysCount());
 
         String query = CalendarContract.Instances.VISIBLE + " = 1";
         String sort = CalendarContract.Instances.DTSTART + " ASC";
@@ -156,7 +151,7 @@ public class CalendarContentResolver {
         if (cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
                 EventInfo ci = new EventInfo();
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                ci.empty = false;
 
                 // Dane podstawowe
                 ci.id = cursor.getString(COL_EVENT_ID);
@@ -196,11 +191,13 @@ public class CalendarContentResolver {
                     ci.color = cursor.getInt(COL_EVENT_COLOR);
                 }
                 else if (!cursor.isNull(COL_CALENDAR_COLOR)) {
-                    ci.color = cursor.getInt(COL_CALENDAR_COLOR);
+                    ci.color = CalendarUtils.getDisplayColor(cursor.getInt(COL_CALENDAR_COLOR));
                 }
                 else {
                     ci.color = context.getResources().getColor(R.color.widgetCalendarColor, null);
                 }
+
+                // SETTINGS.Log(String.format("0x%08X", ci.color));
 
                 boolean flag = true;
                 if (!SETTINGS.getWidgetShowPastEvents() && !ci.allDay && now.after(ci.end)) {
@@ -210,6 +207,7 @@ public class CalendarContentResolver {
                 // Dodanie do listy jeżeli kalendarz jest na liście obsługiwanych
                 if (calendars.contains(ci.calendarName) && flag) {
                     // Log.d(SETTINGS.TAG, ci.title + ": " + format.format(ci.start.getTime()) + ", " + format.format(ci.end.getTime())); // + ", (" + ci.duration.getSeconds() + " seconds)");
+                    removeEmptyEvent(events, ci.start);
                     events.add(ci);
                 }
             }
@@ -220,6 +218,30 @@ public class CalendarContentResolver {
         return events;
     }
 
+    protected static void addEmptyEvents(Context context, ArrayList<EventInfo> events) {
+
+        for (int i = 0; i < SETTINGS.getWidgetDaysCount(); i++) {
+            EventInfo event = new EventInfo();
+            Calendar calendar = SETTINGS.getCalendarDateInstance();
+            calendar.add(Calendar.DAY_OF_MONTH, i);
+            event.start = calendar;
+            event.title = context.getResources().getString(R.string.noevents);
+            event.color = 0xFFFFFFFF;
+            events.add(event);
+        }
+    }
+
+    protected static void removeEmptyEvent(ArrayList<EventInfo> events, Calendar day) {
+        for (int i = 0; i < events.size(); i++) {
+            EventInfo event = events.get(i);
+            if (event.empty && SETTINGS.compareCalendars(event.start, day) == 0) {
+                events.remove(i);
+                break;
+            }
+        }
+    }
+
+
     /**
      * Ustawia flagę pierwszy i ostatni event danego dnia
      *
@@ -227,28 +249,13 @@ public class CalendarContentResolver {
      */
     protected static void setFirstLast(ArrayList<EventInfo> events)
     {
-        Calendar d = Calendar.getInstance();
+        Calendar d = SETTINGS.getCalendarDateInstance();
         d.set(Calendar.YEAR, 2000);
-        d.set(Calendar.HOUR_OF_DAY, 0);
-        d.set(Calendar.MINUTE, 0);
-        d.set(Calendar.SECOND, 0);
-        d.set(Calendar.MILLISECOND, 0);
-        // SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         TimeZone tz = TimeZone.getDefault();
 
         for (int i = 0; i < events.size(); i++) {
             EventInfo event = events.get(i);
-            Calendar currentDate = (Calendar)event.start.clone();
-
-            // Log.d(SETTINGS.TAG, "before: " + format.format(currentDate.getTime()) + " - " + Long.toString(currentDate.getTimeInMillis()));
-            currentDate.setTimeZone(tz);
-            currentDate.set(Calendar.HOUR_OF_DAY, 0);
-            currentDate.set(Calendar.MINUTE, 0);
-            currentDate.set(Calendar.SECOND, 0);
-            currentDate.set(Calendar.MILLISECOND, 0);
-
-            // Log.d(SETTINGS.TAG, "after: " + format.format(currentDate.getTime()) + " - " + Long.toString(currentDate.getTimeInMillis()));
-            event.first = !currentDate.equals(d);
+            event.first = SETTINGS.compareCalendars(event.start, d) != 0;
             event.last = false;
 
             if (event.first && i > 0) {
@@ -256,7 +263,7 @@ public class CalendarContentResolver {
                 prev.last = true;
             }
 
-            d = currentDate;
+            d = (Calendar)event.start.clone();
         }
     }
 

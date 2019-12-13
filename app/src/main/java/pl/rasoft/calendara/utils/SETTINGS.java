@@ -12,7 +12,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TimeZone;
 
+import pl.rasoft.calendara.BuildConfig;
 import pl.rasoft.calendara.R;
 
 public class SETTINGS {
@@ -135,12 +137,14 @@ public class SETTINGS {
      * @param calendar Obiekt klasy Calendar
      */
     public static void Log(String template, Calendar calendar) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        if (template != null && !template.isEmpty()) {
-            String s = String.format(template, format.format(calendar.getTime()));
-            Log.d(TAG, s);
-        } else {
-            Log.d(TAG, format.format(calendar.getTime()));
+        if (BuildConfig.DEBUG) {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            if (template != null && !template.isEmpty()) {
+                String s = String.format(template, format.format(calendar.getTime()));
+                Log.d(TAG, s);
+            } else {
+                Log.d(TAG, format.format(calendar.getTime()));
+            }
         }
     }
 
@@ -149,7 +153,9 @@ public class SETTINGS {
     }
 
     public static void Log(String template, Object ...params) {
-        Log.d(TAG, String.format(template, params));
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, String.format(template, params));
+        }
     }
 
     public static void Log(Exception ex) {
@@ -183,5 +189,39 @@ public class SETTINGS {
     }
 
     // </editor-fold>
+
+    /**
+     *
+     * @return
+     */
+    public static Calendar getCalendarDateInstance()
+    {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar;
+    }
+
+    /**
+     * Porównuje dwa kalendarze
+     * @param calendar1
+     * @param calendar2
+     * @return
+     */
+    public static int compareCalendars(Calendar calendar1, Calendar calendar2) {
+        int result = Integer.compare(calendar1.get(Calendar.YEAR), calendar2.get(Calendar.YEAR));
+        if (result != 0) {
+            return result;
+        }
+
+        result = Integer.compare(calendar1.get(Calendar.MONTH), calendar2.get(Calendar.MONTH));
+        if (result != 0) {
+            return result;
+        }
+
+        return Integer.compare(calendar1.get(Calendar.DAY_OF_MONTH), calendar2.get(Calendar.DAY_OF_MONTH));
+    }
 
 }

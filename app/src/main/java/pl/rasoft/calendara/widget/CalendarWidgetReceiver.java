@@ -18,13 +18,15 @@ public class CalendarWidgetReceiver extends BroadcastReceiver {
         if (action != null && !action.isEmpty()) {
             Bundle extras = intent.getExtras();
 
-            Intent showEventIntent = new Intent(Intent.ACTION_VIEW);
-            Uri.Builder uri = CalendarContract.Events.CONTENT_URI.buildUpon();
-            uri.appendPath(extras.getString("id"));
-            showEventIntent.setData(uri.build());
-            showEventIntent.putExtra("beginTime", extras.getLong("beginTime"));
-            showEventIntent.putExtra("endTime", extras.getLong("endTime"));
-            context.startActivity(showEventIntent);
+            if (extras != null) {
+                Intent showEventIntent = new Intent(Intent.ACTION_VIEW);
+                Uri.Builder uri = CalendarContract.Events.CONTENT_URI.buildUpon();
+                uri.appendPath(extras.getString("id"));
+                showEventIntent.setData(uri.build());
+                showEventIntent.putExtra("beginTime", extras.getLong("beginTime"));
+                showEventIntent.putExtra("endTime", extras.getLong("endTime"));
+                context.startActivity(showEventIntent);
+            }
         }
 
     }

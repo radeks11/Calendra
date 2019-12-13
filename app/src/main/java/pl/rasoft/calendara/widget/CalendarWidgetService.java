@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -65,36 +66,36 @@ public class CalendarWidgetService extends RemoteViewsService {
             RemoteViews views = new RemoteViews(_context.getPackageName(), R.layout.calendar_widget_item);
             EventInfo event = _events.get(i);
 
-
-            // views.setTag(event);
             views.setTextViewText(R.id.item_day,  event.getDay());
             views.setTextViewText(R.id.item_dayofweek,  event.getDayOfWeek(getApplicationContext()));
             views.setTextViewText(R.id.item_time,  event.getTime());
             views.setTextViewText(R.id.item_title,  event.title);
 
             if (event.first) {
+                views.setTextViewText(R.id.item_day_description, event.getDayDescription(getBaseContext()));
+                views.setInt(R.id.item_day_description, "setVisibility", View.VISIBLE);
                 views.setTextViewText(R.id.item_day,  event.getDay());
                 views.setTextViewText(R.id.item_dayofweek,  event.getDayOfWeek(getApplicationContext()));
-
             }
             else {
+                views.setTextViewText(R.id.item_day_description, "");
+                views.setInt(R.id.item_day_description, "setVisibility", View.GONE);
                 views.setTextViewText(R.id.item_day, "");
                 views.setTextViewText(R.id.item_dayofweek,  "");
-
             }
 
-            int h = (int)SETTINGS.convertDpToPixel(_context, 40f);
-            if (event.last) {
-                h = (int)SETTINGS.convertDpToPixel(_context, 50f);
-            }
-            views.setInt(R.id.item_main_layout, "setMinimumHeight", h);
+//            int h = (int)SETTINGS.convertDpToPixel(_context, 40f);
+//            if (event.last) {
+//                h = (int)SETTINGS.convertDpToPixel(_context, 50f);
+//            }
+//            views.setInt(R.id.item_main_layout, "setMinimumHeight", h);
 
-            setColor(event, views);
+             setColor(event, views);
 
-            // Ustawienie szczegółów przekazywanych przy kliknięciu.
-            // Android nakazuje ustawić jeden event dla całego ListView w widgecie,
-            // Dlatego do Extras należy dodać szczegóły przekazywane przy kliknięciu
-            setEventDetails(event, views);
+//             Ustawienie szczegółów przekazywanych przy kliknięciu.
+//             Android nakazuje ustawić jeden event dla całego ListView w widgecie,
+//             Dlatego do Extras należy dodać szczegóły przekazywane przy kliknięciu
+             setEventDetails(event, views);
 
             return views;
         }
@@ -102,20 +103,29 @@ public class CalendarWidgetService extends RemoteViewsService {
         protected void setColor(EventInfo event, RemoteViews views) {
             Calendar now = Calendar.getInstance();
 
-            if (now.after(event.end)) {
+            if (event.empty) {
                 views.setInt(R.id.item_title, "setTextColor", SETTINGS.getWidgetPastColor());
                 views.setInt(R.id.item_time, "setTextColor", SETTINGS.getWidgetPastColor());
-            }
-            else if (now.after(event.start)) {
-                views.setInt(R.id.item_title, "setTextColor", SETTINGS.getWidgetActiveColor());
-                views.setInt(R.id.item_time, "setTextColor", SETTINGS.getWidgetActiveColor());
+                views.setInt(R.id.item_day, "setTextColor", SETTINGS.getWidgetPastColor());
+                views.setInt(R.id.item_dayofweek, "setTextColor", SETTINGS.getWidgetPastColor());
+                views.setInt(R.id.item_color, "setBackgroundColor", SETTINGS.getWidgetPastColor());
             }
             else {
-                views.setInt(R.id.item_title, "setTextColor", SETTINGS.getWidgetDefaultColor());
-                views.setInt(R.id.item_time, "setTextColor", SETTINGS.getWidgetDefaultColor());
-            }
+                if (now.after(event.end)) {
+                    views.setInt(R.id.item_title, "setTextColor", SETTINGS.getWidgetPastColor());
+                    views.setInt(R.id.item_time, "setTextColor", SETTINGS.getWidgetPastColor());
+                }
+                else if (now.after(event.start)) {
+                    views.setInt(R.id.item_title, "setTextColor", SETTINGS.getWidgetActiveColor());
+                    views.setInt(R.id.item_time, "setTextColor", SETTINGS.getWidgetActiveColor());
+                }
+                else {
+                    views.setInt(R.id.item_title, "setTextColor", SETTINGS.getWidgetDefaultColor());
+                    views.setInt(R.id.item_time, "setTextColor", SETTINGS.getWidgetDefaultColor());
+                }
 
-            views.setInt(R.id.item_color, "setBackgroundColor", event.color);
+                views.setInt(R.id.item_color, "setBackgroundColor", event.color);
+            }
         }
 
         /**
@@ -125,12 +135,16 @@ public class CalendarWidgetService extends RemoteViewsService {
          * @param views
          */
         protected void setEventDetails(EventInfo event, RemoteViews views) {
-            Bundle extras = new Bundle();
-            extras.putString("id", event.id);
-            extras.putLong("beginTime", event.start.getTimeInMillis());
-            extras.putLong("endTime", event.end.getTimeInMillis());
+
             Intent fillInIntent = new Intent();
-            fillInIntent.putExtras(extras);
+
+            if (!event.empty) {
+                Bundle extras = new Bundle();
+                extras.putString("id", event.id);
+                extras.putLong("beginTime", event.start.getTimeInMillis());
+                extras.putLong("endTime", event.end.getTimeInMillis());
+                fillInIntent.putExtras(extras);
+            }
 
             // Podpięcie szczegółów do całego rekordu
             views.setOnClickFillInIntent(R.id.item_main_layout, fillInIntent);

@@ -3,41 +3,56 @@ package pl.rasoft.calendara.utils;
 import android.content.Context;
 
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.TimeZone;
 
+import pl.rasoft.calendara.R;
+
 public class EventInfo {
-    public String id;
-    public String title;
-    public String calendarName;
-    public String location;
+    public String id = "";
+    public String title = "";
+    public String calendarName = "";
+    public String location = "";
     public Calendar start;
     public Calendar end;
-    public Duration duration;
     public TimeZone timeZone;
-    public int color;
-    public boolean first;
-    public boolean last;
-    public boolean allDay;
-    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
-    SimpleDateFormat dayFormat = new SimpleDateFormat("d MMM");
+    public int color = 0;
+    public boolean first = false;
+    public boolean last = false;
+    public boolean allDay = false;
+    public boolean empty = true;
+    private static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+    private static final SimpleDateFormat dayFormat = new SimpleDateFormat("d MMM");
 
     public String getDay() {
         return dayFormat.format(start.getTime());
     }
 
+    public String getDayDescription(Context context) {
+        Calendar calendar = SETTINGS.getCalendarDateInstance();
+        if (SETTINGS.compareCalendars(calendar, start) == 0) {
+            return context.getResources().getString(R.string.today);
+        }
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        if (SETTINGS.compareCalendars(calendar, start) == 0) {
+            return context.getResources().getString(R.string.tomorrow);
+        }
+        return "";
+    }
+
     public String getDayOfWeek(Context context) {
         return start.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, context.getResources().getConfiguration().locale);
-        // return String.format("%d", start.get(Calendar.DA));
     }
 
     public String getTime() {
 
-        String s = "";
+        String s;
 
-        if (allDay) {
+        if (empty) {
+            s = "";
+        }
+        else if (allDay) {
             s = "Wydarzenie całodniowe";
         }
         else {

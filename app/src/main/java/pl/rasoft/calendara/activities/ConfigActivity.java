@@ -17,6 +17,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import pl.rasoft.calendara.R;
 import pl.rasoft.calendara.calendar.CalendarAdapter;
+import pl.rasoft.calendara.calendar.CalendarTestAdapter;
 import pl.rasoft.calendara.utils.OnClickListenerA;
 import pl.rasoft.calendara.utils.SETTINGS;
 import pl.rasoft.calendara.widget.CalendarWidget;
@@ -27,6 +28,7 @@ public class ConfigActivity extends AppCompatActivity {
 
     ImageButton _saveButton;
     ListView _calendarsListView;
+    ListView _testListView;
     EditText _daysCount;
     TextView _pastColor;
     TextView _activeColor;
@@ -51,12 +53,18 @@ public class ConfigActivity extends AppCompatActivity {
     /**
      *
      */
+    @RequiresApi(api = Build.VERSION_CODES.O)
     protected void initFields()
     {
         // Calendars
         _calendarsListView = findViewById(R.id.config_calendars);
         CalendarAdapter adapter = new CalendarAdapter(this);
         _calendarsListView.setAdapter(adapter);
+
+        // Test
+        _testListView = findViewById(R.id.test);
+        CalendarTestAdapter testAdapter = new CalendarTestAdapter(this);
+        _testListView.setAdapter(testAdapter);
 
         // Ilość dni
         _daysCount = findViewById(R.id.config_days);
@@ -154,6 +162,7 @@ public class ConfigActivity extends AppCompatActivity {
 
     // <editor-fold desc="Receivers & listeners, ActivityResult">
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         if (requestCode == SETTINGS.READ_CALENDAR_REQUEST_ID) {
